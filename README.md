@@ -1,0 +1,2 @@
+# loglog
+Simple frontend logger
