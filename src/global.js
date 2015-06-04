@@ -1,0 +1,1 @@
+window.LogLog = window.LogLog || require( './index' );
