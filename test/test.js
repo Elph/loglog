@@ -1,4 +1,4 @@
-//require('./testdom')('<html><body></body></html>');
+require('./testdom')('<html><body></body></html>');
 
 var assert = require("assert"),
     should = require("should"),
