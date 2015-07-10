@@ -14,5 +14,11 @@ describe('LogLog', function(){
             // assert
             should.exists(o);
         })
+    });
+
+    describe('', function(){
+
+
+
     })
-})
+});

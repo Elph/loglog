@@ -1,29 +1,28 @@
-var $   = require( '../../node_modules/jquery' ),
-    LogLog = require( '../../src/index' );
+var LogLog = require( '../../src/index' );
 
-$(function () {
+(function () {
     var log = new LogLog('prefix');
-    var logDisable = new LogLog('prefix2');
+    var anotherLog = new LogLog('prefix2');
 
 
     //LogLog.disable('*');
     LogLog.disable('prefix');
 
-    log.log('log', ['b', 1], 12, function(a){ var i = 0; });
-    log.debug('debug', ['b', 1], 12, function(a){ var i = 0; });
-    log.info('info', ['b', 1], 12, function(a){ var i = 0; });
-    log.warn('warn', ['b', 1], 12, function(a){ var i = 0; });
-    log.error('error', ['b', 1], 12, function(a){ var i = 0; });
+    log.log('!hello log', ['b', 1], 12, function(a){ var i = 0; });
+    log.debug('!hello debug', ['b', 1], 12, function(a){ var i = 0; });
+    log.info('!hello info', ['b', 1], 12, function(a){ var i = 0; });
+    log.warn('!hello warn', ['b', 1], 12, function(a){ var i = 0; });
+    log.error('!hello error', ['b', 1], 12, function(a){ var i = 0; });
 
-    logDisable.log('log', ['b', 1], 12, function(a){ var i = 0; });
-    logDisable.debug('debug', ['b', 1], 12, function(a){ var i = 0; });
-    logDisable.info('info', ['b', 1], 12, function(a){ var i = 0; });
-    logDisable.warn('warn', ['b', 1], 12, function(a){ var i = 0; });
-    logDisable.error('error', ['b', 1], 12, function(a){ var i = 0; });
+    anotherLog.log('hello log', ['b', 1], 12, function(a){ var i = 0; });
+    anotherLog.debug('hello debug', ['b', 1], 12, function(a){ var i = 0; });
+    anotherLog.info('hello info', ['b', 1], 12, function(a){ var i = 0; });
+    anotherLog.warn('hello warn', ['b', 1], 12, function(a){ var i = 0; });
+    anotherLog.error('hello error', ['b', 1], 12, function(a){ var i = 0; });
 
     for(var i = 0; i<100; i++){
         var l = new LogLog('colorTest'+i);
         l.log('testing color in', i);
     }
 
-});
+})();

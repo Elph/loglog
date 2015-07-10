@@ -1,6 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 window.LogLog = window.LogLog || require( './index' );
 },{"./index":2}],2:[function(require,module,exports){
+var isColorSupported = require('./isConsoleColorSupported.js');
 
 ;(function() {
 
@@ -67,6 +68,14 @@ window.LogLog = window.LogLog || require( './index' );
             lastUsedColorIndex += 1;
         }
         instances.push(this);
+
+        if(supports_html5_storage()){
+            try {
+                filterRegExps = JSON.parse(localStorage['LogLog_filters']);
+            } catch(e){
+                console.error('Could not parse the "LogLog_filters" from localStorage',localStorage['LogLog_filters']);
+            }
+         }
         return this;
     }
 
@@ -77,13 +86,13 @@ window.LogLog = window.LogLog || require( './index' );
         Array.prototype.forEach.call(arguments, function(str) {
             addFilter('enable', str);
         })
-    }
+    };
 
     LogLog.disable = function() {
         Array.prototype.forEach.call(arguments, function(str) {
             addFilter('disable', str);
         })
-    }
+    };
 
     // Public
     // ------
@@ -109,15 +118,15 @@ window.LogLog = window.LogLog || require( './index' );
     // -------
 
     function isDisabled(instance) {
-        var _isDisabled = false
+        var _isDisabled = false;
         filterRegExps.forEach(function(filter) {
             if (filter.type === 'enable' && filter.regExp.test(instance.prefix)) {
-                _isDisabled = false
+                _isDisabled = false;
             } else if (filter.type === 'disable' &&
                 filter.regExp.test(instance.prefix)) {
-                _isDisabled = true
+                _isDisabled = true;
             }
-        })
+        });
 
         return _isDisabled;
     }
@@ -125,18 +134,21 @@ window.LogLog = window.LogLog || require( './index' );
     function addFilter(type, str) {
         if (str[0] === '-') {
             if(type == 'enable') {
-                LogLog.disable(str.substr(1))
+                LogLog.disable(str.substr(1));
             }
             if(type == 'disable') {
-                LogLog.enable(str.substr(1))
+                LogLog.enable(str.substr(1));
             }
         }
 
-        var r =  new RegExp('^' + str.replace(/\*/g, '.*?') + '$')
+        var r =  new RegExp('^' + str.replace(/\*/g, '.*?') + '$');
         if (str === '*') {
             filterRegExps = [{ type: type, regExp: r }];
         } else {
             filterRegExps.push({ type: type, regExp: r });
+        }
+        if(supports_html5_storage()){
+            localStorage['LogLog_filters'] = JSON.stringify(filterRegExps);
         }
     }
 
@@ -158,19 +170,13 @@ window.LogLog = window.LogLog || require( './index' );
         return (typeof str === 'string') ? str.replace(/\%c/g, '') : str
     }
 
-    function isColorSupported() {
-        // Is webkit? http://stackoverflow.com/a/16459606/376773
-        var isWebkit = ('WebkitAppearance' in document.documentElement.style);
-        // Is firebug? http://stackoverflow.com/a/398120/376773
-        var isFirebug = ( window.console && (console.firebug || (console.exception && console.table)) );
-        // Is firefox >= v31?
-        // https://developer.mozilla.org/en-US/docs/Tools/
-        //  Web_Console#Styling_messages
-        var isFirefox31Plus = (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
-        return (isWebkit || isFirebug || isFirefox31Plus);
+    function supports_html5_storage(){
+        try{
+            return 'localStorage' in window && window['localStorage'] !== null;
+        } catch(e) {
+            return false;
+        }
     }
-
-    //window.LogLog = LogLog;
 
     module.exports = LogLog;
 
@@ -178,4 +184,17 @@ window.LogLog = window.LogLog || require( './index' );
 
 
 
+},{"./isConsoleColorSupported.js":3}],3:[function(require,module,exports){
+
+module.exports = function (){
+    // Is webkit? http://stackoverflow.com/a/16459606/376773
+    var isWebkit = ('WebkitAppearance' in document.documentElement.style);
+    // Is firebug? http://stackoverflow.com/a/398120/376773
+    var isFirebug = ( window.console && (console.firebug || (console.exception && console.table)) );
+    // Is firefox >= v31?
+    // https://developer.mozilla.org/en-US/docs/Tools/
+    //  Web_Console#Styling_messages
+    var isFirefox31Plus = (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
+    return (isWebkit || isFirebug || isFirefox31Plus);
+};
 },{}]},{},[1])
