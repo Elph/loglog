@@ -2,25 +2,31 @@
 var LogLog = require( '../../src/index' );
 
 (function () {
-    var log = new LogLog('prefix');
-    var anotherLog = new LogLog('prefix2');
-
+    var disabledLog = new LogLog('prefix');
 
     //LogLog.disable('*');
+
+    // we will disable all logs for "prefix"
     LogLog.disable('prefix');
+    disabledLog.log('this log is not visible');
+    disabledLog.debug('this debug is not visible');
+    disabledLog.info('this info is not visible');
+    disabledLog.warn('this warn is not visible');
+    disabledLog.error('this error is not visible');
 
-    log.log('!hello log', ['b', 1], 12, function(a){ var i = 0; });
-    log.debug('!hello debug', ['b', 1], 12, function(a){ var i = 0; });
-    log.info('!hello info', ['b', 1], 12, function(a){ var i = 0; });
-    log.warn('!hello warn', ['b', 1], 12, function(a){ var i = 0; });
-    log.error('!hello error', ['b', 1], 12, function(a){ var i = 0; });
+    // then we enable it
+    LogLog.enable('prefix');
+    disabledLog.log('this one should appear on the console');
 
-    anotherLog.log('hello log', ['b', 1], 12, function(a){ var i = 0; });
-    anotherLog.debug('hello debug', ['b', 1], 12, function(a){ var i = 0; });
-    anotherLog.info('hello info', ['b', 1], 12, function(a){ var i = 0; });
-    anotherLog.warn('hello warn', ['b', 1], 12, function(a){ var i = 0; });
-    anotherLog.error('hello error', ['b', 1], 12, function(a){ var i = 0; });
+    // passing objects to the logger
+    var anotherLog = new LogLog('prefix2');
+    anotherLog.log('you can pass strings', 'awesome!');
+    anotherLog.debug('or numbers', 12);
+    anotherLog.info('arrays or objects too', ['b', 1], {foo:12, bar:'aa'});
+    anotherLog.warn('functions', function(a){ var i = 0; });
+    anotherLog.error('or go crazy', ['b', 1], 12, {data:'cool'}, function(a){ var i = 0; });
 
+    // colored prefixes
     for(var i = 0; i<100; i++){
         var l = new LogLog('colorTest'+i);
         l.log('testing color in', i);
@@ -32,7 +38,8 @@ var isColorSupported = require('./isConsoleColorSupported.js');
 
 ;(function() {
 
-    var colors = [
+    var STORAGE_KEY = 'LogLog_Filters';
+    var COLORS = [
         //  Red
         '#F44336',
         // Pink
@@ -91,18 +98,12 @@ var isColorSupported = require('./isConsoleColorSupported.js');
 
         this.prefix = prefix;
         if(isColorSupported()){
-            this.prefixColor = colors[lastUsedColorIndex % colors.length];
+            this.prefixColor = COLORS[lastUsedColorIndex % COLORS.length];
             lastUsedColorIndex += 1;
         }
         instances.push(this);
 
-        if(supports_html5_storage()){
-            try {
-                filterRegExps = JSON.parse(localStorage['LogLog_filters']);
-            } catch(e){
-                console.error('Could not parse the "LogLog_filters" from localStorage',localStorage['LogLog_filters']);
-            }
-         }
+        filterRegExps = getFromStorage(STORAGE_KEY) || [];
         return this;
     }
 
@@ -147,10 +148,11 @@ var isColorSupported = require('./isConsoleColorSupported.js');
     function isDisabled(instance) {
         var _isDisabled = false;
         filterRegExps.forEach(function(filter) {
-            if (filter.type === 'enable' && filter.regExp.test(instance.prefix)) {
+            var regExp = new RegExp(filter.expr);
+            if (filter.type === 'enable' && regExp.test(instance.prefix)) {
                 _isDisabled = false;
             } else if (filter.type === 'disable' &&
-                filter.regExp.test(instance.prefix)) {
+                regExp.test(instance.prefix)) {
                 _isDisabled = true;
             }
         });
@@ -168,15 +170,14 @@ var isColorSupported = require('./isConsoleColorSupported.js');
             }
         }
 
-        var r =  new RegExp('^' + str.replace(/\*/g, '.*?') + '$');
+        var expression = '^' + str.replace(/\*/g, '.*?') + '$';
         if (str === '*') {
-            filterRegExps = [{ type: type, regExp: r }];
+            filterRegExps = [{ type: type, expr: expression }];
         } else {
-            filterRegExps.push({ type: type, regExp: r });
+            filterRegExps.push({ type: type, expr: expression });
         }
-        if(supports_html5_storage()){
-            localStorage['LogLog_filters'] = JSON.stringify(filterRegExps);
-        }
+
+        setToStorage(STORAGE_KEY, filterRegExps);
     }
 
     function isPrefixUsed(prefix, instances) {
@@ -202,6 +203,22 @@ var isColorSupported = require('./isConsoleColorSupported.js');
             return 'localStorage' in window && window['localStorage'] !== null;
         } catch(e) {
             return false;
+        }
+    }
+
+    function setToStorage(key, value){
+        if(!supports_html5_storage())
+            return;
+        localStorage[key] = JSON.stringify(value);
+    }
+    function getFromStorage(key){
+        if(!supports_html5_storage())
+            return undefined;
+
+        try {
+            return JSON.parse(localStorage[key]);
+        } catch(e){
+            console.error('Cannot load filter from localStorage', e);
         }
     }
 

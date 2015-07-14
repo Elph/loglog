@@ -5,7 +5,8 @@ var isColorSupported = require('./isConsoleColorSupported.js');
 
 ;(function() {
 
-    var colors = [
+    var STORAGE_KEY = 'LogLog_Filters';
+    var COLORS = [
         //  Red
         '#F44336',
         // Pink
@@ -64,18 +65,12 @@ var isColorSupported = require('./isConsoleColorSupported.js');
 
         this.prefix = prefix;
         if(isColorSupported()){
-            this.prefixColor = colors[lastUsedColorIndex % colors.length];
+            this.prefixColor = COLORS[lastUsedColorIndex % COLORS.length];
             lastUsedColorIndex += 1;
         }
         instances.push(this);
 
-        if(supports_html5_storage()){
-            try {
-                filterRegExps = JSON.parse(localStorage['LogLog_filters']);
-            } catch(e){
-                console.error('Could not parse the "LogLog_filters" from localStorage',localStorage['LogLog_filters']);
-            }
-         }
+        filterRegExps = getFromStorage(STORAGE_KEY) || [];
         return this;
     }
 
@@ -120,10 +115,11 @@ var isColorSupported = require('./isConsoleColorSupported.js');
     function isDisabled(instance) {
         var _isDisabled = false;
         filterRegExps.forEach(function(filter) {
-            if (filter.type === 'enable' && filter.regExp.test(instance.prefix)) {
+            var regExp = new RegExp(filter.expr);
+            if (filter.type === 'enable' && regExp.test(instance.prefix)) {
                 _isDisabled = false;
             } else if (filter.type === 'disable' &&
-                filter.regExp.test(instance.prefix)) {
+                regExp.test(instance.prefix)) {
                 _isDisabled = true;
             }
         });
@@ -141,15 +137,14 @@ var isColorSupported = require('./isConsoleColorSupported.js');
             }
         }
 
-        var r =  new RegExp('^' + str.replace(/\*/g, '.*?') + '$');
+        var expression = '^' + str.replace(/\*/g, '.*?') + '$';
         if (str === '*') {
-            filterRegExps = [{ type: type, regExp: r }];
+            filterRegExps = [{ type: type, expr: expression }];
         } else {
-            filterRegExps.push({ type: type, regExp: r });
+            filterRegExps.push({ type: type, expr: expression });
         }
-        if(supports_html5_storage()){
-            localStorage['LogLog_filters'] = JSON.stringify(filterRegExps);
-        }
+
+        setToStorage(STORAGE_KEY, filterRegExps);
     }
 
     function isPrefixUsed(prefix, instances) {
@@ -175,6 +170,22 @@ var isColorSupported = require('./isConsoleColorSupported.js');
             return 'localStorage' in window && window['localStorage'] !== null;
         } catch(e) {
             return false;
+        }
+    }
+
+    function setToStorage(key, value){
+        if(!supports_html5_storage())
+            return;
+        localStorage[key] = JSON.stringify(value);
+    }
+    function getFromStorage(key){
+        if(!supports_html5_storage())
+            return undefined;
+
+        try {
+            return JSON.parse(localStorage[key]);
+        } catch(e){
+            console.error('Cannot load filter from localStorage', e);
         }
     }
 
