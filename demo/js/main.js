@@ -1,6 +1,11 @@
 var LogLog = require( '../../src/index' );
 
 (function () {
+
+    var nonPrefixed = new LogLog();
+    nonPrefixed.log('This is a log from not prefixed logger');
+
+
     var disabledLog = new LogLog('prefix');
 
     //LogLog.disable('*');
@@ -30,5 +35,8 @@ var LogLog = require( '../../src/index' );
         var l = new LogLog('colorTest'+i);
         l.log('testing color in', i);
     }
+
+
+
 
 })();

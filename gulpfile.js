@@ -13,8 +13,6 @@ gulp.task( 'build-lib-min', function () {
         .pipe( concat( 'loglog.min.js' ) )
         .pipe( gulp.dest( 'dist/' ) );
 });
-
-
 gulp.task( 'build-demo', function () {
     return gulp.src( 'demo/js/main.js' )
         .pipe( browserify() )
@@ -22,4 +20,11 @@ gulp.task( 'build-demo', function () {
         .pipe( gulp.dest( 'demo/js/' ) );
 });
 
-gulp.task( 'default', [ 'build-lib-min', 'build-demo' ] );
+
+gulp.task( 'build-test', function () {
+    return gulp.src( 'test/tests.js' )
+        .pipe( browserify() )
+        .pipe( gulp.dest( 'test/bundle/' ) );
+});
+
+gulp.task( 'default', [ 'build-lib-min', 'build-demo', 'build-test' ] );
