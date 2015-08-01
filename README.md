@@ -1,6 +1,7 @@
 # LogLog
 
 Simple frontend logger. It supports prefixing and coloring.
+The prefix can be enabled or disabled and it's saved on localStorage
 
 Heavily inspired in front-log and LogDown
 
@@ -22,8 +23,3 @@ You can enable o disable a prefix or all (*) using the static
 
      LogLog.enable('*');
      LogLog.enable('prefix');
-
-## TODO
-
-* Make the disable/enable persistent via cookies or browser localstorage
-* Add some testing via jsdom / phantomjs?
